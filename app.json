@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "name": "trenova",
+    "slug": "trenova",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "fd65dca3-3548-40f7-b54c-8e9433c39b15"
+      }
+    }
+  }
+}
