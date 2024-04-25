@@ -36,13 +36,19 @@ import {
   setCourse,
   setInitialCourseInfo,
 } from "../redux/features/course/courseSlice";
-import { useGetTopSchoolsQuery } from "../redux/api/learnersApiSlice";
+import {
+  useGetLearnerDetailsQuery,
+  useGetTopSchoolsQuery,
+  useLoginMutation,
+  useLogoutMutation,
+} from "../redux/api/learnersApiSlice";
 import { RefreshControl } from "react-native";
 import {
   useFocusEffect,
   useNavigation,
   useRoute,
 } from "@react-navigation/native";
+import { logout, setCredentials } from "../redux/features/auth/authSlice";
 
 const { avatar } = images;
 
@@ -61,15 +67,20 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = React.useState(false);
   const route = useRoute();
   const navigation = useNavigation();
-
+  const [logOutApi] = useLogoutMutation();
   const { data: topschools } = useGetTopSchoolsQuery();
-  // Usage
   const currentTerm = getCurrentTerm();
   const { data, refetch, isFetching } = useGetCoursesQuery({
     class: userInfo?.class,
     term: currentTerm,
     school: userInfo?.schoolID._id,
   });
+  const {
+    data: user,
+    isLoading,
+    isError,
+    refetch: refetchUser,
+  } = useGetLearnerDetailsQuery(userInfo?._id);
   // const onRefresh = React.useCallback(() => {
   //   // setRefreshing(true);
   //   // setTimeout(() => {
@@ -77,27 +88,52 @@ export default function HomeScreen() {
   //   // }, 2000);
   //   refetch();
   // }, []);
+
+  const logoutHandler = async () => {
+    try {
+      const netInfo = await NetInfo.fetch();
+      const isConnected = netInfo.isConnected;
+      if (isConnected) {
+        const result = await logOutApi(userInfo?._id);
+        if (result?.error) {
+          Alert.alert("Network request failed");
+        }
+        if (result.data?.status === "success") {
+          await dispatch(logout());
+          navigation.navigate("SignIn");
+        }
+      } else {
+        Alert.alert("internet not available");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
   useFocusEffect(
     React.useCallback(() => {
+      if (user?.learner?.schoolID.isActivated === false) {
+        logoutHandler();
+      }
       refetch();
-    }, [])
+      refetchUser();
+    }, [user])
   );
+
   useEffect(() => {
     const fetchData = async () => {
       // Check if there's an active network connection
       const netInfo = await NetInfo.fetch();
       const isConnected = netInfo.isConnected;
+
       try {
         // Check if there's an active network connection
         if (isConnected && data) {
           // If there's a network connection, query the database
-          console.log(data);
           dispatch(setInitialCourseInfo(data));
           dispatch(setCourse(data));
           navigation.setParams({ refresh: false });
         } else if (!isConnected && !data) {
           // If there's no network connection, fetch data from AsyncStorage
-          console.log(data);
           dispatch(initializecourseInfo());
           navigation.setParams({ refresh: false });
         }

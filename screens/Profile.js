@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Button from "../components/button";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import {
   ActivityIndicator,
   Alert,
@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import {
   useGetLearnerDetailsQuery,
+  useLoginMutation,
   useLogoutMutation,
   useUpdateLearnerMutation,
 } from "../redux/api/learnersApiSlice";
@@ -36,10 +37,12 @@ const Profile = () => {
   const dispatch = useDispatch();
   const { userInfo } = useSelector((state) => state.auth);
   const [updateLearner, { error }] = useUpdateLearnerMutation();
+  const [login] = useLoginMutation();
 
   const { data, isLoading, isError, refetch } = useGetLearnerDetailsQuery(
     userInfo._id
   );
+
   const logoutHandler = async () => {
     setIsLogging(true);
     try {
@@ -211,6 +214,14 @@ const Profile = () => {
     }
   };
 
+  useFocusEffect(
+    React.useCallback(() => {
+      if (data?.learner?.schoolID.isActivated === false) {
+        logoutHandler();
+      }
+      refetch();
+    }, [data])
+  );
   return (
     <ScrollView className="bg-bgWhite">
       <SafeAreaView className="flex-1 bg-bgWhite mt-8 p-4 ">

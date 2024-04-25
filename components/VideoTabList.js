@@ -79,7 +79,11 @@ const VideoTabList = ({ item, handleVideoPress, handleVideoDownloaded }) => {
           <Text className="text-green-600 font-bold">
             {item.content.indexOf(".mp4") !== -1 ? "video" : "book"}
           </Text>
-          <Text className={` text-gold text-xl font-roboto  leading-none `}>
+          <Text
+            className={` text-gold ${
+              item.title.length < 12 ? "text-xl" : null
+            }  font-roboto  leading-none `}
+          >
             {item.title}
           </Text>
           <Text className={` text-gold text-xs leading-none `}>
@@ -96,8 +100,7 @@ const VideoTabList = ({ item, handleVideoPress, handleVideoDownloaded }) => {
             onPress={() => {
               item.content.indexOf(".mp4") !== -1
                 ? handleDownload(item._id, item.content)
-                : handleDownload(item._id, item.content);
-              navigation.navigate("PdfReader", { pdfUrl: item.content });
+                : navigation.navigate("PdfReader", { pdfUrl: item.content });
             }}
           >
             <Text className=" text-white font-bold">download</Text>
@@ -121,7 +124,7 @@ const VideoTabList = ({ item, handleVideoPress, handleVideoDownloaded }) => {
           className=" bg-green-700 rounded-xl ml-auto p-2"
           onPress={() => handleVideoPress(item._id, downloadedVideoPath)}
         >
-          <Text className=" text-white font-bold">Watch Offline</Text>
+          <Text className=" text-white font-bold">Watch</Text>
         </Pressable>
       ) : (
         <Pressable
@@ -130,7 +133,7 @@ const VideoTabList = ({ item, handleVideoPress, handleVideoDownloaded }) => {
             navigation.navigate("PdfReader", { pdfUrl: item.content })
           }
         >
-          <Text className=" text-white font-bold">View Offline</Text>
+          <Text className=" text-white font-bold">View</Text>
         </Pressable>
       )}
     </Pressable>
