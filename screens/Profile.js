@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   Text,
   View,
+  ScrollView,
 } from "react-native";
 import {
   useGetLearnerDetailsQuery,
@@ -23,8 +24,8 @@ import { PermissionsAndroid } from "react-native";
 import { PhotoIcon } from "react-native-heroicons/solid";
 import { uploadFileToS3 } from "../utils/aws";
 import { Pressable } from "react-native";
-import { ScrollView } from "react-native";
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as FileSystem from "expo-file-system";
 const Profile = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedImageUrl, setSelectedImageUrl] = useState(null);
@@ -44,32 +45,68 @@ const Profile = () => {
   );
 
   const logoutHandler = async () => {
-    setIsLogging(true);
-    try {
-      const netInfo = await NetInfo.fetch();
-      const isConnected = netInfo.isConnected;
-      if (isConnected) {
-        const result = await logOutApi(userInfo._id);
-        if (result?.error) {
-          Alert.alert("Network request failed");
-          setIsLogging(false);
-        }
-        if (result.data?.status === "success") {
-          await dispatch(logout());
-          navigation.navigate("SignIn");
-          setIsLogging(false);
-        }
-      } else {
-        Alert.alert("internet not available");
-        setIsLogging(false);
-      }
-    } catch (error) {
-      setIsLogging(false);
+    // Function to show confirmation prompt
+    const showLogoutConfirmation = () => {
+      Alert.alert(
+        "Logout",
+        "logging out? All saved data will be cleared!",
+        [
+          {
+            text: "Cancel",
+            onPress: () => console.log("Logout cancelled"),
+            style: "cancel",
+          },
+          { text: "Logout", onPress: confirmLogout },
+        ],
+        { cancelable: false }
+      );
+    };
 
-      console.error(error);
-    }
+    // Function to confirm logout
+    const confirmLogout = async () => {
+      setIsLogging(true);
+      try {
+        const netInfo = await NetInfo.fetch();
+        const isConnected = netInfo.isConnected;
+        if (isConnected) {
+          const result = await logOutApi(userInfo._id);
+          if (result?.error) {
+            Alert.alert("Network request failed");
+            setIsLogging(false);
+          }
+          if (result.data?.status === "success") {
+            await dispatch(logout());
+            deleteAllItems();
+            navigation.navigate("SignIn");
+            setIsLogging(false);
+          }
+        } else {
+          Alert.alert("Internet not available");
+          setIsLogging(false);
+        }
+      } catch (error) {
+        setIsLogging(false);
+        console.error(error);
+      }
+    };
+
+    // Show the confirmation prompt
+    showLogoutConfirmation();
   };
 
+  const deleteAllItems = async () => {
+    try {
+      await Promise.all(
+        savedItems?.map(async (item) => {
+          await AsyncStorage.removeItem(item[0]);
+          await FileSystem.deleteAsync(item[1]);
+        })
+      );
+      setSavedItems([]);
+    } catch (error) {
+      console.error("Error deleting all items:", error);
+    }
+  };
   const requestCameraPermission = async () => {
     try {
       const granted = await PermissionsAndroid.request(
@@ -296,14 +333,24 @@ const Profile = () => {
               //   primaryBtnText={"LogOut"}
               //   onPrimaryBtnPress={() => logoutHandler()}
               //     />
-              <Pressable
-                onPress={logoutHandler}
-                className="py-3 bg-red-400 px-2 rounded-xl w-full  max-h-[58px] flex items-center justify-center"
-              >
-                <Text className=" font-exoSemibold text-center text-bgWhite">
-                  LogOut
-                </Text>
-              </Pressable>
+              <>
+                <Pressable
+                  onPress={logoutHandler}
+                  className="py-3 bg-red-400 px-2 mb-2 rounded-xl w-full  max-h-[58px] flex items-center justify-center"
+                >
+                  <Text className=" font-exoSemibold text-center text-bgWhite">
+                    LogOut
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => navigation.navigate("DeleteScreen")}
+                  className="py-3 bg-green-400 px-2 rounded-xl w-full  max-h-[58px] flex items-center justify-center"
+                >
+                  <Text className=" font-exoSemibold text-center text-bgWhite">
+                    Clear up Storage
+                  </Text>
+                </Pressable>
+              </>
             )}
           </View>
         ) : (

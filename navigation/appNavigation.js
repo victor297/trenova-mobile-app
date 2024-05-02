@@ -23,6 +23,7 @@ import { useSelector } from "react-redux";
 import Profile from "../screens/Profile";
 import CourseNavigator from "./CourseNavigator";
 import PdfReaderScreen from "../screens/PdfRaderScreen";
+import DeleteScreen from "../screens/DeleteScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -57,11 +58,6 @@ export default function AppNavigation() {
               options={{ headerShown: false }}
               component={SelectGradeScreen}
             />
-            <Stack.Screen
-              name="SelectProvince"
-              options={{ headerShown: false }}
-              component={SelectProvinceScreen}
-            />
           </>
         ) : (
           <>
@@ -74,6 +70,11 @@ export default function AppNavigation() {
               name="SelectProvince"
               options={{ headerShown: false }}
               component={SelectProvinceScreen}
+            />
+            <Stack.Screen
+              name="DeleteScreen"
+              options={{ headerShown: false }}
+              component={DeleteScreen}
             />
             <Stack.Screen name="PdfReader" component={PdfReaderScreen} />
           </>

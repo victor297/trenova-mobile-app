@@ -111,7 +111,11 @@ export default function HomeScreen() {
   };
   useFocusEffect(
     React.useCallback(() => {
-      if (user?.learner?.schoolID.isActivated === false) {
+      console.log(user);
+      if (
+        user?.learner?.schoolID.isActivated === false ||
+        user?.learner?.isActivated === false
+      ) {
         logoutHandler();
       }
       refetch();
