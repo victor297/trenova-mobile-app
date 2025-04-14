@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "LearnNova",
+    "slug": "LearnNova",
+    "version": "1.0.2",
+    "extra": {
+      "eas": {
+        "projectId": "7be22a7b-baa4-4d59-94ad-28d037817d34"
+      }
+    },
+    "android": {
+      "package": "com.victor297.LearnNova",
+      "runtimeVersion": "1.0.2"
+    }
+  }
+}
